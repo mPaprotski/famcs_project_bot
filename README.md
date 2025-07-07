@@ -1,14 +1,13 @@
 # famcs_project_bot
 
-В файле config.py находится токен бота, распределение ролей на 
-администратора и продавцов
+The config.py file contains the bot token, distribution of roles between the
+administrator and sellers
 
-Файл sheets.py подключает библиотеку для работы с нашей базой данных. В нашем
-случае гугл таблицей. И также подключает гугл таблицу
+The sheets.py file connects the library for working with our database. In our
+case, a Google table. And also connects a Google table
 
-В файле bot_launch.py находятся функционал бота
+The bot_launch.py ​​file contains the bot functionality
 
-data_func.py содержит функцию, которая выдает количество всех товаров
+data_func.py contains a function that gives the number of all products
 
-clients_func.py распределяет клиенто между продавцами
-
+clients_func.py distributes clients between sellers
