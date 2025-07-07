@@ -1,5 +1,8 @@
 import telebot
-from telebot import *
+from telebot import types
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
 
 bot = telebot.TeleBot("7758068587:AAHYH6xvrZy2TwtFJZ5GZ7q12CcKc3DN_lw")
 
