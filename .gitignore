@@ -1,0 +1,12 @@
+# Секретные файлы
+.env
+credentials.json
+
+# Виртуальное окружение
+venv/
+__pycache__/
+*.pyc
+
+# Логи
+*.log
+
