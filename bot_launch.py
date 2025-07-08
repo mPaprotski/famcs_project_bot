@@ -21,10 +21,10 @@ def register_handlers():
 
     @bot.callback_query_handler(func=lambda call: call.data == 'clients')
     def handle_clients(call):
-        user_id = call.from_user.id
         username = f"@{call.from_user.username}"
-        if user_id in ADMINS:
+        if username in ADMINS:
             markup = types.InlineKeyboardMarkup()
+            bot.send_message(call.message.chat.id, "Какой продавец вас интересует?")
             for seller in SELLERS:
                 markup.add(types.InlineKeyboardButton(seller, callback_data=f"seller_{seller}"))
             bot.send_message(call.message.chat.id, "Выберите продавца:", reply_markup=markup)
@@ -33,7 +33,7 @@ def register_handlers():
 
     @bot.callback_query_handler(func=lambda call: call.data.startswith("seller_"))
     def handle_seller_selection(call):
-        seller = call.data.split("_")[1]
+        seller = call.data.split("_", 1)[1]
         show_clients_for_seller(bot, call.message.chat.id, seller)
 
 register_handlers()
