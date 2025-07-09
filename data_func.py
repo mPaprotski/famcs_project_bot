@@ -16,7 +16,7 @@ def get_inventory_summary():
                 item = name.replace('Количество ', '').strip()
                 color = row.get(color_key, '').strip() if color_key else ''
                 size = row.get(size_key, '').strip() if size_key else ''
-                key = f"{item}, {color}, {size}".strip(', ')
+                key = f"{item}, {color}, {size}".strip(' ')
                 inventory[key] = inventory.get(key, 0) + count
 
     add_item('Количество футболок', 'Расцветка футболки', 'Размер футболки')
@@ -31,9 +31,18 @@ def get_inventory_summary():
     add_item('Блокнот черный', None)
 
     result_lines = []
+    price_per_item = None
     for k, v in sorted(inventory.items()):
-        base_item = k.split(',')[0]
-        price = PRICES.get(base_item, '?')
-        result_lines.append(f"{k} — {v} шт. (цена: {price} руб.)")
+        lower_k = k.lower()
+        for name, price in PRICES.items():
+            if name in lower_k:
+                price_per_item = price
+                break
 
+        if price_per_item is not None:
+            total_price = price_per_item * v
+            result_lines.append(f"{k} - {v} шт.\nцена: {total_price} руб.")
+        else:
+            result_lines.append(f"{k} - {v} шт.\nцена: ? руб.")
+        
     return "\n".join(result_lines) if result_lines else "Нет данных."

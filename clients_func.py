@@ -24,7 +24,7 @@ def show_clients_for_seller(bot, chat_id, tg_username):
 
         items, total_price = format_order(row)
         if not items:
-            continue  # Пропускаем клиентов без заказов
+            continue 
 
         found = True
         text = (

@@ -8,6 +8,10 @@ bot = TeleBot(BOT_TOKEN)
 def register_handlers():
     @bot.message_handler(commands=['start'])
     def start(message):
+        username = f"@{message.from_user.username}"
+        if username not in SELLERS and username not in ADMINS:
+            bot.send_message(message.chat.id, "В доступе отказано")
+            return
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("Список всех товаров", callback_data='data'))
         markup.add(types.InlineKeyboardButton("Список клиентов", callback_data='clients'))
@@ -16,9 +20,13 @@ def register_handlers():
 
     @bot.callback_query_handler(func=lambda call: call.data == 'data')
     def handle_data(call):
-        summary = get_inventory_summary()
-        bot.send_message(call.message.chat.id, summary)
-
+        username = f"@{call.from_user.username}"
+        if username in ADMINS:
+            summary = get_inventory_summary()
+            bot.send_message(call.message.chat.id, summary)
+        else:
+            bot.send_message(call.message.chat.id, "Ты не администратор)))")
+        
     @bot.callback_query_handler(func=lambda call: call.data == 'clients')
     def handle_clients(call):
         username = f"@{call.from_user.username}"
@@ -28,8 +36,10 @@ def register_handlers():
             for seller in SELLERS:
                 markup.add(types.InlineKeyboardButton(seller, callback_data=f"seller_{seller}"))
             bot.send_message(call.message.chat.id, "Выберите продавца:", reply_markup=markup)
-        else:
+        elif username in SELLERS:
             show_clients_for_seller(bot, call.message.chat.id, username)
+        else:
+            bot.send_message(call.message.chat.id, "В доступе отказано")
 
     @bot.callback_query_handler(func=lambda call: call.data.startswith("seller_"))
     def handle_seller_selection(call):
