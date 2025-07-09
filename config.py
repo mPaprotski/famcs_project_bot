@@ -6,11 +6,11 @@ load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
 ADMINS = ['@paprotsky']
-SELLERS = ['@mi_halk', '@g101t22' , '@d_mandarincha']
+SELLERS = ['@mi_halk']
 
 PRICES = {
-    'футболок': 60,
-    'лонгсливов': 70,
+    'футболка': 60,
+    'лонгслив': 70,
     'худи': 120,
     'зип-худи': 130,
     'шоппер белый': 20,

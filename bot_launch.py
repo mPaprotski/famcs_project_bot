@@ -10,7 +10,7 @@ def register_handlers():
     def start(message):
         username = f"@{message.from_user.username}"
         if username not in SELLERS and username not in ADMINS:
-            bot.send_message(message.chat.id, "В доступе отказано")
+            bot.send_message(message.chat.id, "Мерч скоро будет. Ждите 🥰", parse_mode="HTML")
             return
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("Список всех товаров", callback_data='data'))
@@ -23,7 +23,7 @@ def register_handlers():
         username = f"@{call.from_user.username}"
         if username in ADMINS:
             summary = get_inventory_summary()
-            bot.send_message(call.message.chat.id, summary)
+            bot.send_message(call.message.chat.id, summary, parse_mode="HTML")
         else:
             bot.send_message(call.message.chat.id, "Ты не администратор)))")
         
