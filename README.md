@@ -11,3 +11,5 @@ The bot_launch.py ​​file contains the bot functionality
 data_func.py contains a function that gives the number of all products
 
 clients_func.py distributes clients between sellers
+
+the .gitignor file contains files that contain the bot token and the Google Sheets ID
