@@ -60,22 +60,17 @@ def show_clients_for_seller(bot, chat_id, tg_username):
         bot.send_message(chat_id, "На вас пока не назначено заказов.")
 
 def format_order(row):
-    """
-    Форматирует информацию о заказе из строки таблицы.
-    """
     total_price = 0
     lines = []
 
     def add_item(title, color_key, size_key, count_key):
-        """
-        Внутренняя функция для добавления товара в список заказа.
-        """
         count = row.get(count_key)
         if count and str(count).isdigit() and int(count) > 0:
             count = int(count)
             color = row.get(color_key, '').strip() if color_key else ''
             size = row.get(size_key, '').strip() if size_key else ''
-            price = PRICES.get(title, 0)
+            # Приводим title к нижнему регистру для поиска в PRICES
+            price = PRICES.get(title.lower(), 0)
             item_sum = count * price
             nonlocal total_price
             total_price += item_sum
