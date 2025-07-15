@@ -1,5 +1,5 @@
 from telebot import types
-from config import SELLERS, PRICES
+from config import SELLERS, PRICES, ITEMS
 from sheets import get_sheet
 import re
 
@@ -60,35 +60,32 @@ def show_clients_for_seller(bot, chat_id, tg_username):
         bot.send_message(chat_id, "На вас пока не назначено заказов.")
 
 def format_order(row):
+    """
+    Форматирует информацию о заказе из строки таблицы.
+    """
     total_price = 0
     lines = []
 
-    def add_item(title, color_key, size_key, count_key):
-        count = row.get(count_key)
+    def add_item(item):
+        """
+        Внутренняя функция для добавления товара в список заказа.
+        """
+        count = row.get(item['count_key'])
         if count and str(count).isdigit() and int(count) > 0:
             count = int(count)
-            color = row.get(color_key, '').strip() if color_key else ''
-            size = row.get(size_key, '').strip() if size_key else ''
-            # Приводим title к нижнему регистру для поиска в PRICES
-            price = PRICES.get(title.lower(), 0)
+            color = row.get(item['color_key'], '').strip() if item['color_key'] else ''
+            size = row.get(item['size_key'], '').strip() if item['size_key'] else ''
+            price = PRICES.get(item['price_key'], 0)
             item_sum = count * price
             nonlocal total_price
             total_price += item_sum
-            parts = [title]
+            parts = [item['name']]
             if color: parts.append(color)
             if size: parts.append(size)
             label = ', '.join(parts)
             lines.append(f"  - {label} x{count} — {item_sum} руб.")
 
-    add_item('Футболка', 'Расцветка футболки', 'Размер футболки', 'Количество футболка')
-    add_item('Лонгслив', 'Расцветка лонгслива', 'Размер лонгслива', 'Количество лонгслив')
-    add_item('Худи', 'Расцветка худи', 'Размер худи', 'Количество худи')
-    add_item('Зип-худи', 'Расцветка зип-худи', 'Размер зип-худи', 'Количество зип-худи')
-    add_item('Шоппер белый', None, None, 'Шоппер белый')
-    add_item('Шоппер черный', None, None, 'Шоппер черный')
-    add_item('Кружка', None, None, 'Кружка')
-    add_item('Значок', None, None, 'Значок')
-    add_item('Блокнот белый', None, None, 'Блокнот белый')
-    add_item('Блокнот черный', None, None, 'Блокнот черный')
+    for item in ITEMS:
+        add_item(item)
 
     return lines, total_price
