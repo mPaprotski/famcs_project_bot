@@ -17,9 +17,15 @@ def update_order_status(row_index, status):
     sheet = get_sheet()
     sheet.update_cell(row_index, 23, status)  # Столбец W (23-й столбец) для статуса
 
-def show_clients_for_seller(bot, chat_id, tg_username):
+def show_clients_for_seller(bot, chat_id, tg_username, status_filter=None):
     """
-    Отображает список клиентов и их заказов для конкретного продавца.
+    Отображает список клиентов и их заказов для конкретного продавца, с возможной фильтрацией по статусу.
+
+    Args:
+        bot: Экземпляр TeleBot
+        chat_id: ID чата для отправки сообщений
+        tg_username: Telegram-username продавца
+        status_filter: Фильтр по статусу заказа ("Оплачено", "Доставлено" или None для всех заказов)
     """
     sheet = get_sheet()
     rows = sheet.get_all_records()
@@ -33,6 +39,10 @@ def show_clients_for_seller(bot, chat_id, tg_username):
 
     for i, row in enumerate(rows):
         if i % len(SELLERS) != seller_index:
+            continue
+
+        # Фильтрация по статусу
+        if status_filter and row.get('Статус', '') != status_filter:
             continue
 
         items, total_price = format_order(row)
@@ -57,7 +67,12 @@ def show_clients_for_seller(bot, chat_id, tg_username):
         bot.send_message(chat_id, text, parse_mode='HTML', reply_markup=markup)
 
     if not found:
-        bot.send_message(chat_id, "На вас пока не назначено заказов.")
+        message = (
+            "На вас пока не назначено заказов."
+            if status_filter is None else
+            f"Нет заказов со статусом '{status_filter}'."
+        )
+        bot.send_message(chat_id, message)
 
 def format_order(row):
     """

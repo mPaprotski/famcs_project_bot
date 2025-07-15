@@ -23,6 +23,8 @@ def register_handlers():
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("Список всех товаров", callback_data='data'))
         markup.add(types.InlineKeyboardButton("Список клиентов", callback_data='clients'))
+        markup.add(types.InlineKeyboardButton("Список оплаченных заказов", callback_data='paid_clients'))
+        markup.add(types.InlineKeyboardButton("Список доставленных заказов", callback_data='delivered_clients'))
         markup.add(types.InlineKeyboardButton("Вопрос по мерчу", url='http://t.me/paprotsky'))
         bot.send_message(message.chat.id, "Что выполняем?", reply_markup=markup)
 
@@ -51,7 +53,41 @@ def register_handlers():
                 markup.add(types.InlineKeyboardButton(seller, callback_data=f"seller_{seller}"))
             bot.send_message(call.message.chat.id, "Выберите продавца:", reply_markup=markup)
         elif username in SELLERS:
-            show_clients_for_seller(bot, call.message.chat.id, username)
+            show_clients_for_seller(bot, call.message.chat.id, username, status_filter=None)
+        else:
+            bot.send_message(call.message.chat.id, "В доступе отказано")
+
+    @bot.callback_query_handler(func=lambda call: call.data == 'paid_clients')
+    def handle_paid_clients(call):
+        """
+        Обработчик кнопки "Список оплаченных заказов". Показывает клиентов с оплаченными заказами.
+        """
+        username = f"@{call.from_user.username}"
+        if username in ADMINS:
+            markup = types.InlineKeyboardMarkup()
+            bot.send_message(call.message.chat.id, "Какой продавец вас интересует?")
+            for seller in SELLERS:
+                markup.add(types.InlineKeyboardButton(seller, callback_data=f"seller_paid_{seller}"))
+            bot.send_message(call.message.chat.id, "Выберите продавца:", reply_markup=markup)
+        elif username in SELLERS:
+            show_clients_for_seller(bot, call.message.chat.id, username, status_filter="Оплачено")
+        else:
+            bot.send_message(call.message.chat.id, "В доступе отказано")
+
+    @bot.callback_query_handler(func=lambda call: call.data == 'delivered_clients')
+    def handle_delivered_clients(call):
+        """
+        Обработчик кнопки "Список доставленных заказов". Показывает клиентов с доставленными заказами.
+        """
+        username = f"@{call.from_user.username}"
+        if username in ADMINS:
+            markup = types.InlineKeyboardMarkup()
+            bot.send_message(call.message.chat.id, "Какой продавец вас интересует?")
+            for seller in SELLERS:
+                markup.add(types.InlineKeyboardButton(seller, callback_data=f"seller_delivered_{seller}"))
+            bot.send_message(call.message.chat.id, "Выберите продавца:", reply_markup=markup)
+        elif username in SELLERS:
+            show_clients_for_seller(bot, call.message.chat.id, username, status_filter="Доставлено")
         else:
             bot.send_message(call.message.chat.id, "В доступе отказано")
 
@@ -60,8 +96,15 @@ def register_handlers():
         """
         Обработчик выбора конкретного продавца из списка.
         """
-        seller = call.data.split("_", 1)[1]
-        show_clients_for_seller(bot, call.message.chat.id, seller)
+        if call.data.startswith("seller_paid_"):
+            seller = call.data.split("seller_paid_", 1)[1]
+            show_clients_for_seller(bot, call.message.chat.id, seller, status_filter="Оплачено")
+        elif call.data.startswith("seller_delivered_"):
+            seller = call.data.split("seller_delivered_", 1)[1]
+            show_clients_for_seller(bot, call.message.chat.id, seller, status_filter="Доставлено")
+        else:
+            seller = call.data.split("seller_", 1)[1]
+            show_clients_for_seller(bot, call.message.chat.id, seller, status_filter=None)
 
     @bot.callback_query_handler(func=lambda call: call.data.startswith("paid_") or call.data.startswith("delivered_") or call.data.startswith("reset_"))
     def handle_status_change(call):
