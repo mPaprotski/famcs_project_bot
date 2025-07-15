@@ -1,28 +1,20 @@
 from telebot import TeleBot, types
 from config import BOT_TOKEN, ADMINS, SELLERS
 from data_func import get_inventory_summary
-from clients_func import show_clients_for_seller
+from clients_func import show_clients_for_seller, update_order_status, format_order
+from sheets import get_sheet
 
 bot = TeleBot(BOT_TOKEN)
 
 def register_handlers():
     """
     Регистрирует все обработчики команд и callback-ов для телеграм бота.
-    Содержит функции-обработчики для команд /start и инлайн-кнопок.
     """
     
     @bot.message_handler(commands=['start'])
     def start(message):
         """
         Обработчик команды /start. Проверяет права пользователя и показывает главное меню.
-        
-        Args:
-            message (types.Message): Объект сообщения от пользователя
-            
-        Действия:
-            1. Проверяет, является ли пользователь продавцом или администратором
-            2. Для обычных пользователей показывает сообщение о скором появлении мерча
-            3. Для авторизованных пользователей показывает меню с кнопками
         """
         username = f"@{message.from_user.username}"
         if username not in SELLERS and username not in ADMINS:
@@ -38,14 +30,6 @@ def register_handlers():
     def handle_data(call):
         """
         Обработчик кнопки "Список всех товаров". Доступен только администраторам.
-        
-        Args:
-            call (types.CallbackQuery): Объект callback от инлайн-кнопки
-            
-        Действия:
-            1. Проверяет права пользователя
-            2. Для администраторов показывает сводку по товарам
-            3. Для остальных показывает сообщение об отказе в доступе
         """
         username = f"@{call.from_user.username}"
         if username in ADMINS:
@@ -58,14 +42,6 @@ def register_handlers():
     def handle_clients(call):
         """
         Обработчик кнопки "Список клиентов". Имеет разное поведение для админов и продавцов.
-        
-        Args:
-            call (types.CallbackQuery): Объект callback от инлайн-кнопки
-            
-        Действия:
-            1. Для администраторов показывает список всех продавцов для выбора
-            2. Для продавцов сразу показывает их клиентов
-            3. Для остальных показывает сообщение об отказе в доступе
         """
         username = f"@{call.from_user.username}"
         if username in ADMINS:
@@ -83,15 +59,72 @@ def register_handlers():
     def handle_seller_selection(call):
         """
         Обработчик выбора конкретного продавца из списка.
-        
-        Args:
-            call (types.CallbackQuery): Объект callback от инлайн-кнопки
-            
-        Действия:
-            1. Извлекает имя продавца из callback_data
-            2. Показывает список клиентов для выбранного продавца
         """
         seller = call.data.split("_", 1)[1]
         show_clients_for_seller(bot, call.message.chat.id, seller)
+
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("paid_") or call.data.startswith("delivered_"))
+    def handle_status_change(call):
+        """
+        Обработчик кнопок изменения статуса заказа.
+        """
+        username = f"@{call.from_user.username}"
+        if username not in SELLERS and username not in ADMINS:
+            bot.answer_callback_query(call.id, "У вас нет прав для изменения статуса")
+            return
+
+        try:
+            # Разбираем callback_data
+            action, row_index = call.data.split("_", 1)
+            row_index = int(row_index)
+            new_status = "Оплачено" if action == "paid" else "Доставлено"
+
+            # Проверяем, что сообщение существует
+            if not call.message:
+                bot.answer_callback_query(call.id, "Ошибка: сообщение недоступно")
+                return
+
+            update_order_status(row_index, new_status)
+            
+            sheet = get_sheet()
+            rows = sheet.get_all_records()
+            if row_index - 2 >= len(rows) or row_index < 2:
+                bot.answer_callback_query(call.id, "Ошибка: строка заказа не найдена")
+                return
+            
+            row = rows[row_index - 2]
+            
+            items, total_price = format_order(row)
+            if not items:
+                bot.answer_callback_query(call.id, "Ошибка: заказ пустой")
+                return
+
+            text = (
+                f"👤 <b>ФИО:</b> {row['ФИО']}\n"
+                f"📞 <u>Телеграм:</u> {row['ТГ (@example)']}\n"
+                f"📱 <u>Телефон:</u> {row['Номер телефона']}\n"
+                f"🛍 <u><b>Заказ:</b></u>\n"
+                f"<pre>{'\n'.join(items)}</pre>\n"
+                f"💰<u><i>Сумма заказа:</i></u> {total_price} руб.\n"
+                f"<b>Статус:</b> {new_status}"
+            )
+            
+            # Обновляем сообщение
+            markup = types.InlineKeyboardMarkup()
+            markup.add(types.InlineKeyboardButton("✅ Оплачено", callback_data=f"paid_{row_index}"))
+            markup.add(types.InlineKeyboardButton("📦 Доставлено", callback_data=f"delivered_{row_index}"))
+            
+            bot.edit_message_text(
+                text=text,
+                chat_id=call.message.chat.id,
+                message_id=call.message.message_id,
+                parse_mode='HTML',
+                reply_markup=markup
+            )
+            bot.answer_callback_query(call.id, f"Статус изменен на: {new_status}")
+        except ValueError as ve:
+            bot.answer_callback_query(call.id, f"Ошибка в данных: {str(ve)}")
+        except Exception as e:
+            bot.answer_callback_query(call.id, f"Ошибка: {str(e)}")
 
 register_handlers()
