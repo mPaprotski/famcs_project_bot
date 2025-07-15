@@ -63,7 +63,7 @@ def register_handlers():
         seller = call.data.split("_", 1)[1]
         show_clients_for_seller(bot, call.message.chat.id, seller)
 
-    @bot.callback_query_handler(func=lambda call: call.data.startswith("paid_") or call.data.startswith("delivered_"))
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("paid_") or call.data.startswith("delivered_") or call.data.startswith("reset_"))
     def handle_status_change(call):
         """
         Обработчик кнопок изменения статуса заказа.
@@ -74,12 +74,15 @@ def register_handlers():
             return
 
         try:
-            # Разбираем callback_data
             action, row_index = call.data.split("_", 1)
             row_index = int(row_index)
-            new_status = "Оплачено" if action == "paid" else "Доставлено"
+            if action == "paid":
+                new_status = "Оплачено"
+            elif action == "delivered":
+                new_status = "Доставлено"
+            else:
+                new_status = ""  # Сброс статуса
 
-            # Проверяем, что сообщение существует
             if not call.message:
                 bot.answer_callback_query(call.id, "Ошибка: сообщение недоступно")
                 return
@@ -93,7 +96,6 @@ def register_handlers():
                 return
             
             row = rows[row_index - 2]
-            
             items, total_price = format_order(row)
             if not items:
                 bot.answer_callback_query(call.id, "Ошибка: заказ пустой")
@@ -106,13 +108,13 @@ def register_handlers():
                 f"🛍 <u><b>Заказ:</b></u>\n"
                 f"<pre>{'\n'.join(items)}</pre>\n"
                 f"💰<u><i>Сумма заказа:</i></u> {total_price} руб.\n"
-                f"<b>Статус:</b> {new_status}"
+                f"<b>Статус:</b> {new_status or 'Не указан'}"
             )
             
-            # Обновляем сообщение
             markup = types.InlineKeyboardMarkup()
             markup.add(types.InlineKeyboardButton("✅ Оплачено", callback_data=f"paid_{row_index}"))
             markup.add(types.InlineKeyboardButton("📦 Доставлено", callback_data=f"delivered_{row_index}"))
+            markup.add(types.InlineKeyboardButton("🔄 Сбросить статус", callback_data=f"reset_{row_index}"))
             
             bot.edit_message_text(
                 text=text,
@@ -121,7 +123,8 @@ def register_handlers():
                 parse_mode='HTML',
                 reply_markup=markup
             )
-            bot.answer_callback_query(call.id, f"Статус изменен на: {new_status}")
+            status_message = "Статус сброшен" if action == "reset" else f"Статус изменен на: {new_status}"
+            bot.answer_callback_query(call.id, status_message)
         except ValueError as ve:
             bot.answer_callback_query(call.id, f"Ошибка в данных: {str(ve)}")
         except Exception as e:

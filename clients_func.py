@@ -47,12 +47,13 @@ def show_clients_for_seller(bot, chat_id, tg_username):
             f"🛍 <u><b>Заказ:</b></u>\n"
             f"<pre>{'\n'.join(items)}</pre>\n"
             f"💰<u><i>Сумма заказа:</i></u> {total_price} руб.\n"
-            f"<b>Статус:</b> {row['Статус']}"
+            f"<b>Статус:</b> {row['Статус'] or 'Не указан'}"
         )
 
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("✅ Оплачено", callback_data=f"paid_{i+2}"))
         markup.add(types.InlineKeyboardButton("📦 Доставлено", callback_data=f"delivered_{i+2}"))
+        markup.add(types.InlineKeyboardButton("🔄 Сбросить статус", callback_data=f"reset_{i+2}"))
         bot.send_message(chat_id, text, parse_mode='HTML', reply_markup=markup)
 
     if not found:
