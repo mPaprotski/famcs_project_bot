@@ -6,6 +6,13 @@ import re
 def escape_markdown(text):
     """
     Экранирует специальные символы Markdown в тексте для корректного отображения в Telegram.
+    Заменяет специальные символы (например, *, _, [, ]) на их экранированные версии, чтобы предотвратить ошибки форматирования.
+    
+    Args:
+        text (str): Входной текст для экранирования.
+    
+    Returns:
+        str: Экранированный текст, пригодный для отправки в Telegram.
     """
     escape_chars = r'\*_`\[\]()~>#+\-=|{}.!'
     return re.sub(r'([%s])' % re.escape(escape_chars), r'\\\1', text)
@@ -13,19 +20,26 @@ def escape_markdown(text):
 def update_order_status(row_index, status):
     """
     Обновляет статус заказа в Google Sheets.
+    Записывает указанный статус в столбец W (23-й столбец) для строки с заданным индексом.
+    
+    Args:
+        row_index (int): Индекс строки в Google Sheets (начиная с 1).
+        status (str): Новый статус заказа ("Оплачено", "Доставлено" или пустая строка для сброса).
     """
     sheet = get_sheet()
-    sheet.update_cell(row_index, 23, status)  # Столбец W (23-й столбец) для статуса
+    sheet.update_cell(row_index, 23, status)
 
 def show_clients_for_seller(bot, chat_id, tg_username, status_filter=None):
     """
-    Отображает список клиентов и их заказов для конкретного продавца, с возможной фильтрацией по статусу.
-
+    Отображает список клиентов и их заказов для конкретного продавца с возможной фильтрацией по статусу.
+    Для каждого клиента, назначенного продавцу, формирует сообщение с информацией о заказе (ФИО, Telegram, телефон, товары, сумма, статус).
+    Поддерживает фильтрацию по статусу заказа ("Оплачено", "Доставлено" или None для всех заказов).
+    
     Args:
-        bot: Экземпляр TeleBot
-        chat_id: ID чата для отправки сообщений
-        tg_username: Telegram-username продавца
-        status_filter: Фильтр по статусу заказа ("Оплачено", "Доставлено" или None для всех заказов)
+        bot: Экземпляр TeleBot для отправки сообщений.
+        chat_id (int): ID чата для отправки сообщений.
+        tg_username (str): Telegram-username продавца.
+        status_filter (str, optional): Фильтр по статусу заказа ("Оплачено", "Доставлено" или None).
     """
     sheet = get_sheet()
     rows = sheet.get_all_records()
@@ -41,7 +55,6 @@ def show_clients_for_seller(bot, chat_id, tg_username, status_filter=None):
         if i % len(SELLERS) != seller_index:
             continue
 
-        # Фильтрация по статусу
         if status_filter and row.get('Статус', '') != status_filter:
             continue
 
@@ -76,14 +89,25 @@ def show_clients_for_seller(bot, chat_id, tg_username, status_filter=None):
 
 def format_order(row):
     """
-    Форматирует информацию о заказе из строки таблицы.
+    Форматирует информацию о заказе из строки таблицы Google Sheets.
+    Создает список строк с описанием товаров (название, цвет, размер, количество, стоимость) и вычисляет общую сумму заказа.
+    
+    Args:
+        row (dict): Словарь с данными строки из Google Sheets.
+    
+    Returns:
+        tuple: Список строк с описанием товаров и общая сумма заказа.
     """
     total_price = 0
     lines = []
 
     def add_item(item):
         """
-        Внутренняя функция для добавления товара в список заказа.
+        Формирует строку для одного товара в заказе.
+        Проверяет количество товара, получает цвет и размер (если есть), вычисляет стоимость и добавляет информацию в список.
+        
+        Args:
+            item (dict): Словарь с информацией о товаре из конфигурации ITEMS.
         """
         count = row.get(item['count_key'])
         if count and str(count).isdigit() and int(count) > 0:

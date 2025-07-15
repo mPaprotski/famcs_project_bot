@@ -8,13 +8,16 @@ bot = TeleBot(BOT_TOKEN)
 
 def register_handlers():
     """
-    Регистрирует все обработчики команд и callback-ов для телеграм бота.
+    Регистрирует обработчики команд и callback-запросов для Telegram-бота.
+    Инициализирует все необходимые функции для обработки входящих сообщений и действий пользователя.
     """
     
     @bot.message_handler(commands=['start'])
     def start(message):
         """
-        Обработчик команды /start. Проверяет права пользователя и показывает главное меню.
+        Обрабатывает команду /start.
+        Проверяет, является ли пользователь администратором или продавцом, и отображает главное меню с кнопками для управления заказами.
+        Если пользователь не авторизован, отправляет сообщение о скором выпуске мерча.
         """
         username = f"@{message.from_user.username}"
         if username not in SELLERS and username not in ADMINS:
@@ -31,7 +34,8 @@ def register_handlers():
     @bot.callback_query_handler(func=lambda call: call.data == 'data')
     def handle_data(call):
         """
-        Обработчик кнопки "Список всех товаров". Доступен только администраторам.
+        Обрабатывает нажатие кнопки "Список всех товаров".
+        Доступно только администраторам. Выводит сводку по инвентарю (количество товаров и их стоимость) из Google Sheets.
         """
         username = f"@{call.from_user.username}"
         if username in ADMINS:
@@ -43,7 +47,10 @@ def register_handlers():
     @bot.callback_query_handler(func=lambda call: call.data == 'clients')
     def handle_clients(call):
         """
-        Обработчик кнопки "Список клиентов". Имеет разное поведение для админов и продавцов.
+        Обрабатывает нажатие кнопки "Список клиентов".
+        Для администраторов: отображает список продавцов для выбора.
+        Для продавцов: показывает список их клиентов с заказами.
+        Для неавторизованных пользователей: сообщает об отказе в доступе.
         """
         username = f"@{call.from_user.username}"
         if username in ADMINS:
@@ -60,7 +67,10 @@ def register_handlers():
     @bot.callback_query_handler(func=lambda call: call.data == 'paid_clients')
     def handle_paid_clients(call):
         """
-        Обработчик кнопки "Список оплаченных заказов". Показывает клиентов с оплаченными заказами.
+        Обрабатывает нажатие кнопки "Список оплаченных заказов".
+        Для администраторов: отображает список продавцов для выбора, чтобы показать их оплаченные заказы.
+        Для продавцов: показывает только их клиентов с оплаченными заказами.
+        Для неавторизованных пользователей: сообщает об отказе в доступе.
         """
         username = f"@{call.from_user.username}"
         if username in ADMINS:
@@ -77,7 +87,10 @@ def register_handlers():
     @bot.callback_query_handler(func=lambda call: call.data == 'delivered_clients')
     def handle_delivered_clients(call):
         """
-        Обработчик кнопки "Список доставленных заказов". Показывает клиентов с доставленными заказами.
+        Обрабатывает нажатие кнопки "Список доставленных заказов".
+        Для администраторов: отображает список продавцов для выбора, чтобы показать их доставленные заказы.
+        Для продавцов: показывает только их клиентов с доставленными заказами.
+        Для неавторизованных пользователей: сообщает об отказе в доступе.
         """
         username = f"@{call.from_user.username}"
         if username in ADMINS:
@@ -94,7 +107,9 @@ def register_handlers():
     @bot.callback_query_handler(func=lambda call: call.data.startswith("seller_"))
     def handle_seller_selection(call):
         """
-        Обработчик выбора конкретного продавца из списка.
+        Обрабатывает выбор конкретного продавца из списка.
+        В зависимости от типа callback (все клиенты, оплаченные или доставленные заказы),
+        вызывает функцию show_clients_for_seller с соответствующим фильтром по статусу.
         """
         if call.data.startswith("seller_paid_"):
             seller = call.data.split("seller_paid_", 1)[1]
@@ -109,7 +124,9 @@ def register_handlers():
     @bot.callback_query_handler(func=lambda call: call.data.startswith("paid_") or call.data.startswith("delivered_") or call.data.startswith("reset_"))
     def handle_status_change(call):
         """
-        Обработчик кнопок изменения статуса заказа.
+        Обрабатывает нажатие кнопок изменения статуса заказа ("Оплачено", "Доставлено", "Сбросить статус").
+        Проверяет права пользователя, обновляет статус в Google Sheets, редактирует сообщение с новой информацией о заказе.
+        Обрабатывает возможные ошибки, такие как неверный индекс строки или пустой заказ.
         """
         username = f"@{call.from_user.username}"
         if username not in SELLERS and username not in ADMINS:
@@ -124,7 +141,7 @@ def register_handlers():
             elif action == "delivered":
                 new_status = "Доставлено"
             else:
-                new_status = ""  # Сброс статуса
+                new_status = ""
 
             if not call.message:
                 bot.answer_callback_query(call.id, "Ошибка: сообщение недоступно")
