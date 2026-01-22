@@ -47,10 +47,10 @@ def get_inventory_summary():
                 break
 
         total_price = price_per_item * v if price_per_item is not None else 0
-        result_lines.append(f"<b>{k}</b> - <b>{v}</b> шт.\n")
+        result_lines.append(f"<b>{k}</b> - <b>{v}</b> pcs.\n")
         
         main_price += total_price
     
-    result_lines.append(f"\n<code><b>Итоговая сумма:\n{main_price} руб.</b></code>")
+    result_lines.append(f"\n<code><b>Total amount:\n{main_price} byn.</b></code>")
 
-    return "\n".join(result_lines) if result_lines else "Нет данных."
+    return "\n".join(result_lines) if result_lines else "No data available"

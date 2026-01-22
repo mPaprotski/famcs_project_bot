@@ -5,91 +5,91 @@ load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
-ADMINS = ['@paprotsky', '@g101t22', "@Lvmzrb"]
-SELLERS = ['@mi_halk']
+ADMINS = ['@mPaprotski', '@g101t22', "@Lvmzrb"]
+SELLERS = ['@mi_halk', '@aboba', '@serb']
 
 PRICES = {
-    'футболка': 60,
-    'лонгслив': 70,
-    'худи': 120,
-    'зип-худи': 130,
-    'шоппер белый': 20,
-    'шоппер черный': 20,
-    'кружка': 11,
-    'значок': 3,
-    'блокнот белый': 6,
-    'блокнот черный': 6,
+    't-shirt': 60,
+    'longsleeve': 70,
+    'hoodie': 120,
+    'zip-hoodie': 130,
+    'shopper white': 20,
+    'shopper black': 20,
+    'mug': 11,
+    'badge': 3,
+    'notebook white': 6,
+    'notebook black': 6,
 }
 
 ITEMS = [
     {
-        'name': 'Футболка',
-        'price_key': 'футболка',
-        'color_key': 'Расцветка футболки',
-        'size_key': 'Размер футболки',
-        'count_key': 'Количество футболка'
+        'name': 'T-shirt',
+        'price_key': 't-shirt',
+        'color_key': 'T-shirt color',
+        'size_key': 'T-shirt size',
+        'count_key': 'T-shirt quantity'
     },
     {
-        'name': 'Лонгслив',
-        'price_key': 'лонгслив',
-        'color_key': 'Расцветка лонгслива',
-        'size_key': 'Размер лонгслива',
-        'count_key': 'Количество лонгслив'
+        'name': 'Longsleeve',
+        'price_key': 'longsleeve',
+        'color_key': 'Longsleeve color',
+        'size_key': 'Longsleeve size',
+        'count_key': 'Longsleeve quantity'
     },
     {
-        'name': 'Худи',
-        'price_key': 'худи',
-        'color_key': 'Расцветка худи',
-        'size_key': 'Размер худи',
-        'count_key': 'Количество худи'
+        'name': 'Hoodie',
+        'price_key': 'hoodie',
+        'color_key': 'Hoodie color',
+        'size_key': 'Hoodie size',
+        'count_key': 'Hoodie quantity'
     },
     {
-        'name': 'Зип-худи',
-        'price_key': 'зип-худи',
-        'color_key': 'Расцветка зип-худи',
-        'size_key': 'Размер зип-худи',
-        'count_key': 'Количество зип-худи'
+        'name': 'Zip-hoodie',
+        'price_key': 'zip-hoodie',
+        'color_key': 'Zip-hoodie color',
+        'size_key': 'Zip-hoodie size',
+        'count_key': 'Zip-hoodie quantity'
     },
     {
-        'name': 'Шоппер белый',
-        'price_key': 'шоппер белый',
+        'name': 'Shopper white',
+        'price_key': 'shopper white',
         'color_key': None,
         'size_key': None,
-        'count_key': 'Шоппер белый'
+        'count_key': 'Shopper white'
     },
     {
-        'name': 'Шоппер черный',
-        'price_key': 'шоппер черный',
+        'name': 'Shopper black',
+        'price_key': 'shopper black',
         'color_key': None,
         'size_key': None,
-        'count_key': 'Шоппер черный'
+        'count_key': 'Shopper black'
     },
     {
-        'name': 'Кружка',
-        'price_key': 'кружка',
+        'name': 'Mug',
+        'price_key': 'mug',
         'color_key': None,
         'size_key': None,
-        'count_key': 'Кружка'
+        'count_key': 'Mug'
     },
     {
-        'name': 'Значок',
-        'price_key': 'значок',
+        'name': 'Badge',
+        'price_key': 'badge',
         'color_key': None,
         'size_key': None,
-        'count_key': 'Значок'
+        'count_key': 'Badge'
     },
     {
-        'name': 'Блокнот белый',
-        'price_key': 'блокнот белый',
+        'name': 'Notebook white',
+        'price_key': 'notebook white',
         'color_key': None,
         'size_key': None,
-        'count_key': 'Блокнот белый'
+        'count_key': 'Notebook white'
     },
     {
-        'name': 'Блокнот черный',
-        'price_key': 'блокнот черный',
+        'name': 'Notebook black',
+        'price_key': 'notebook black',
         'color_key': None,
         'size_key': None,
-        'count_key': 'Блокнот черный'
+        'count_key': 'Notebook black'
     },
 ]
